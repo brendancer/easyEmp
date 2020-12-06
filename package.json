@@ -1,0 +1,24 @@
+{
+  "name": "easyemp",
+  "version": "1.0.0",
+  "description": "A content management system enabling a business owner to view and manage departments, role, and employees.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brendancer/easyEmp.git"
+  },
+  "author": "Brenda Goodwin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brendancer/easyEmp/issues"
+  },
+  "homepage": "https://github.com/brendancer/easyEmp#readme",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  }
+}

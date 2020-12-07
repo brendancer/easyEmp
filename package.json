@@ -2,7 +2,7 @@
   "name": "easyemp",
   "version": "1.0.0",
   "description": "A content management system enabling a business owner to view and manage departments, role, and employees.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "npm test"
   },

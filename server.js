@@ -1,6 +1,7 @@
 var consoleTable = require("console.table");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var queries = require("./queries");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -18,9 +19,35 @@ connection.connect(function (err) {
 
 function firstStart() {
   console.log(
-    "Welcome to easyEmp! \n A CMS to help you manage your employee database"
+    "Welcome to easyEmp! \n A CMS to help you manage your employee database \n Type in a type of employee\n (i.e. vice president, progammer, salesperson, etc.)\n You will have a chance to enter all employee types"
   );
-  start();
+  empRole();
+
+  function empRole() {
+    inquirer
+      .prompt(
+        {
+          type: "input",
+          name: "empType",
+          message: "Employee Type",
+        },
+        {
+          type: "confirm",
+          name: "done",
+          message: "Do you have more employee types to enter?",
+        }
+      )
+      .then(function (answer) {
+        if (answer.done === false) {
+          empRole();
+        } else {
+          console.log(
+            "Thank you for emtering your employee types. Now you may perform the followin tasks:"
+          );
+          start();
+        }
+      });
+  }
 }
 
 function start() {

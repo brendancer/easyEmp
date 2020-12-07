@@ -3,6 +3,9 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var queries = require("./queries");
 var setUp = require("./setup");
+const { Console } = require("console");
+const { start } = require("repl");
+const { truncate } = require("fs");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -28,7 +31,7 @@ function firstStart() {
         type: "confirm",
         name: "setUp",
         message:
-          "Do you need to set up or update either your employee types or department names?",
+          "Do you need to set up either your employee-types or department-names?",
       },
     ])
     .then(function (answer) {
@@ -36,108 +39,116 @@ function firstStart() {
         inquirer
           .prompt([
             {
-              type: "list",
-              name: "setUpmodify",
-              message: "Which would you like to add?",
-              choices: ["Employee Type", "Department Name", "Both"],
+              type: "confirm",
+              name: "setUpDept",
+              message: "Do you need to add department-names?",
             },
           ])
           .then(function (answer) {
-            switch (answer.setUpmodify) {
-              case "Employee Type":
-                console.log(
-                  "Type in a type of employee\n (i.e. vice president, progammer, salesperson, etc.)\n one at a time"
-                );
-                empRole();
-                break;
-
-              case "Department Name":
-                console.log(
-                  "Enter Departments (i.e. accounting, production, sales etc.) \n one at a time"
-                );
-                deptName();
+            if (answer.setUpDept === true) {
+              deptName();
+            } else {
+              inquirer
+                .prompt([
+                  {
+                    type: "confirm",
+                    name: "setUpEmp",
+                    message: "Do you need to add Employee-Types?",
+                  },
+                ])
+                .then(function (answer) {
+                  if (answer.setUpEmp === true) {
+                    empRole();
+                  } else {
+                    start();
+                  }
+                });
             }
           });
-      } else {
-        start();
-      }
-    });
 
-  function empRole() {
-    inquirer
-      .prompt([
-        {
-          type: "input",
-          name: "empType",
-          message: "Employee Type",
-        },
-        {
-          type: "input",
-          name: "salary",
-          message: "Salary (in K, i.e 40,500 = 40.5)",
-        },
-        {
-          type: "input",
-          name: "dept",
-          message: "Department (if Applicable, type enter for none)",
-        },
-      ])
-      .then(function (answer) {
-        connection.query(
-          "INSERT INTO emp_role SET ?",
-          {
-            title: answer.empType,
-            salary: answer.salary,
-            department_id: answer.dept,
-          },
-          function (err) {
-            if (err) throw err;
-            console.log(`Employee type ${answer.empType} edded to database`);
-            inquirer
-              .prompt([
+        function empRole() {
+          console.log("Current Employee-type ID Numbers");
+          displayRoleNo();
+          displayDeptNo();
+
+          inquirer
+            .prompt([
+              {
+                type: "input",
+                name: "empType",
+                message: "Employee Type",
+              },
+              {
+                type: "number",
+                name: "salary",
+                message: "Salary (in K, i.e 40,500 = 40.5)",
+              },
+              {
+                type: "number",
+                name: "dept",
+                message:
+                  "Department Number (if Applicable, type enter for none)",
+              },
+            ])
+            .then(function (answer) {
+              if (!answer.salary || !answer.dept) {
+                console.log("Your answer must be a number");
+              }
+              connection.query(
+                "INSERT INTO emp_role SET ?",
                 {
-                  type: "confirm",
-                  name: "done",
-                  message: "Would you like to add another employee type?",
+                  title: answer.empType,
+                  salary: answer.salary,
+                  department_id: answer.dept,
                 },
-              ])
-              .then(function (answer) {
-                if (answer.done === false) {
-                  console.log("Thank you for emtering your employee types.");
-                  start();
-                } else {
-                  empRole();
+                function (err) {
+                  if (err) throw err;
+                  console.log(
+                    `Employee type ${answer.empType} edded to database`
+                  );
+                  inquirer
+                    .prompt([
+                      {
+                        type: "confirm",
+                        name: "done",
+                        message: "Would you like to add another employee type?",
+                      },
+                    ])
+                    .then(function (answer) {
+                      if (answer.done === false) {
+                        console.log(
+                          "Thank you for emtering your employee types."
+                        );
+                        start();
+                      } else {
+                        empRole();
+                      }
+                    });
                 }
-              });
-          }
-        );
-      });
-  }
-
-  function deptName() {
-    inquirer
-      .prompt([
-        {
-          type: "input",
-          name: "deptName",
-          message: "Department Name:",
-        },
-        {
-          type: "list",
-          name: "done",
-          message: "Do you have more Department Names to enter?",
-          choices: ["yes", "no"],
-        },
-      ])
-      .then(function (answer) {
-        connection.query(
-          "INSERT INTO department SET ?",
-          {
-            dept_name: answer.deptName,
-          },
-          function (err) {
-            if (err) throw err;
-            console.log(`${answer.deptName} Department added to database`);
+              );
+            });
+        }
+      }
+      function deptName() {
+        inquirer
+          .prompt([
+            {
+              type: "input",
+              name: "deptName",
+              message: "Department Name:",
+            },
+          ])
+          .then(function (answer) {
+            connection.query(
+              "INSERT INTO department SET ?",
+              {
+                dept_name: answer.deptName,
+              },
+              function (err) {
+                if (err) throw err;
+                console.log(`${answer.deptName} Department added to database`);
+              }
+            );
             inquirer
               .prompt([
                 {
@@ -148,34 +159,46 @@ function firstStart() {
               ])
               .then(function (answer) {
                 if (answer.done === false) {
-                  console.log(
-                    "Thank you for emtering your department names. Now you may perform the following tasks:"
-                  );
-                  start();
+                  console.log("Department ID Numbers \n");
+                  displayDeptNo();
+                  inquirer
+                    .prompt([
+                      {
+                        type: "confirm",
+                        name: "empAlso",
+                        message: "Do you need to add Employee-Types?",
+                      },
+                    ])
+                    .then(function (answer) {
+                      if (answer.empAlso === true) {
+                        empRole();
+                      } else {
+                        start();
+                      }
+                    });
                 } else {
                   deptName();
                 }
               });
-          }
-        );
-      });
-  }
+          });
+      }
+    });
 
   function displayRoleNo() {
-    console.log("Employee-type Id#s");
-    connection.query("SELECT title FROM emp_role"),
-      function (err, res) {
-        if (err) throw err;
-        console.log(res);
-      };
+    connection.query("SELECT id, title FROM emp_role", function (err, res) {
+      if (err) throw err;
+      console.table(res);
+    });
   }
+
   function displayDeptNo() {
-    console.log("Department Id#s");
-    connection.query("SELECT dept_name FROM department"),
+    connection.query(
+      "SELECT id,dept_name FROM department",
       function (err, res) {
         if (err) throw err;
-        console.log(res);
-      };
+        console.table(res);
+      }
+    );
   }
 
   function start() {

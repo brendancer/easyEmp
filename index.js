@@ -1,4 +1,4 @@
-var console = require("console.table");
+var consoleTable = require("console.table");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
@@ -24,15 +24,35 @@ function firstStart() {
 }
 
 function start() {
-  inquirer.prompt({
-    type: "list",
-    name: "taskChoice",
-    message: "Choose your task",
-    choices: [
-      "Post new info to the database",
-      "View database info",
-      "Change current info in database",
-      "Delete database information or entries",
-    ],
-  });
+  inquirer
+    .prompt({
+      type: "list",
+      name: "taskChoice",
+      message: "Choose your task",
+      choices: [
+        "Add new info to the database",
+        "View database info",
+        "Change current info in database",
+        "Remove database information or entries",
+      ],
+    })
+    .then(function (answer) {
+      switch (answer) {
+        case "Add new info to the database":
+          addInfo();
+          break;
+
+        case "View database info":
+          viewInfo();
+          break;
+
+        case "Change current info in database":
+          changeInfo();
+          break;
+
+        case "Remove database information or entries":
+          removeInfo();
+          break;
+      }
+    });
 }

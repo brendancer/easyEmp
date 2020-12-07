@@ -3,7 +3,6 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var queries = require("./queries");
 var setUp = require("./setup");
-const { resolve } = require("url");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -85,7 +84,7 @@ function firstStart() {
       ])
       .then(function (answer) {
         connection.query(
-          "INSERT INTO role SET ?",
+          "INSERT INTO emp_role SET ?",
           {
             title: answer.empType,
             salary: answer.salary,
@@ -134,7 +133,7 @@ function firstStart() {
         connection.query(
           "INSERT INTO department SET ?",
           {
-            name: answer.deptName,
+            dept_name: answer.deptName,
           },
           function (err) {
             if (err) throw err;
@@ -161,9 +160,10 @@ function firstStart() {
         );
       });
   }
+
   function displayRoleNo() {
     console.log("Employee-type Id#s");
-    connection.query("SELECT id, title FROM role"),
+    connection.query("SELECT title FROM emp_role"),
       function (err, res) {
         if (err) throw err;
         console.log(res);
@@ -171,7 +171,7 @@ function firstStart() {
   }
   function displayDeptNo() {
     console.log("Department Id#s");
-    connection.query("SELECT id, name FROM department"),
+    connection.query("SELECT dept_name FROM department"),
       function (err, res) {
         if (err) throw err;
         console.log(res);

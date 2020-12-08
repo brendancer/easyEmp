@@ -1,1 +1,1 @@
-var server = require("./server");
+var newqueries = require("./queries");

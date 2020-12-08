@@ -1,59 +1,11 @@
-const inquirer = require("inquirer");
-const { listenerCount } = require("process");
+var server = require("./server");
 
-function addInfo() {
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "changeItem",
-        message: "Type of data to be added",
-        choices: ["new employee", "new department", "change employee role"],
-      },
-    ])
-    .then(function (answer) {
-      switch (answer) {
-        case "new employee":
-          newEmp();
-          break;
+// const getDptIdtable = connection.query(
+//   "SELECT id, dept_name FROM department",
+//   function (err, res) {
+//     if (err) throw err;
+//     console.table("Department- name ID numbers", res);
+//   }
+// );
 
-        case "new department":
-          newDept();
-          break;
-
-        case "change employee role":
-          changeRole();
-          break;
-      }
-    });
-}
-
-// function viewInfo() {}
-
-// function changeInfo() {}
-
-// function removeInfo() {}
-
-// // function newEmp() {
-// //   inquirer
-// //             .prompt([
-// //               {
-// //                 name: "firstName",
-// //                 type: "input",
-// //                 message: "Employee's First Name:",
-// //               },
-// //               {
-// //                 name: "lastName",
-// //                 type: "input",
-// //                 message: "Employee's Last Name",
-// //               },
-// //               {
-// //                 name: "role",
-// //                 type: "rawlist",
-// //                 message: "Please Choose the Employee Role",
-// //                 choices: ["a", "b"],
-// //               },
-
-// //function newDept() {};
-
-// //function changeRole() {};
+// module.exports = queryList;

@@ -18,13 +18,30 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  firstStart();
+  hello();
 });
 
-function firstStart() {
+function displayRoleNo() {
+  connection.query("SELECT id, title FROM emp_role", function (err, res) {
+    if (err) throw err;
+    console.table("Epmployee-Type ID numbers", [res]);
+  });
+}
+
+function displayDeptNo() {
+  connection.query("SELECT id, dept_name FROM department", function (err, res) {
+    if (err) throw err;
+    console.table("Department- name ID numbers", [res]);
+  });
+}
+function hello() {
   console.log(
     "Welcome to easyEmp! \n A CMS to help you manage your employee database"
   );
+  firstStart();
+}
+
+function firstStart() {
   inquirer
     .prompt([
       {
@@ -58,6 +75,10 @@ function firstStart() {
                 ])
                 .then(function (answer) {
                   if (answer.setUpEmp === true) {
+                    console.log(
+                      "Enter Type of Employee (i.e doctor, salesperson, clerk, etc"
+                    );
+
                     empRole();
                   } else {
                     start();
@@ -67,10 +88,6 @@ function firstStart() {
           });
 
         function empRole() {
-          console.log("Current Employee-type ID Numbers");
-          displayRoleNo();
-          displayDeptNo();
-
           inquirer
             .prompt([
               {
@@ -86,8 +103,7 @@ function firstStart() {
               {
                 type: "number",
                 name: "dept",
-                message:
-                  "Department Number (if Applicable, type enter for none)",
+                message: "Department number",
               },
             ])
             .then(function (answer) {
@@ -104,7 +120,7 @@ function firstStart() {
                 function (err) {
                   if (err) throw err;
                   console.log(
-                    `Employee type ${answer.empType} edded to database`
+                    `Employee type ${answer.empType} added to database`
                   );
                   inquirer
                     .prompt([
@@ -117,7 +133,7 @@ function firstStart() {
                     .then(function (answer) {
                       if (answer.done === false) {
                         console.log(
-                          "Thank you for emtering your employee types."
+                          "Thank you for entering your employee types."
                         );
                         start();
                       } else {
@@ -159,8 +175,6 @@ function firstStart() {
               ])
               .then(function (answer) {
                 if (answer.done === false) {
-                  console.log("Department ID Numbers \n");
-                  displayDeptNo();
                   inquirer
                     .prompt([
                       {
@@ -184,26 +198,7 @@ function firstStart() {
       }
     });
 
-  function displayRoleNo() {
-    connection.query("SELECT id, title FROM emp_role", function (err, res) {
-      if (err) throw err;
-      console.table(res);
-    });
-  }
-
-  function displayDeptNo() {
-    connection.query(
-      "SELECT id,dept_name FROM department",
-      function (err, res) {
-        if (err) throw err;
-        console.table(res);
-      }
-    );
-  }
-
   function start() {
-    displayRoleNo();
-    displayDeptNo();
     inquirer
       .prompt({
         type: "list",

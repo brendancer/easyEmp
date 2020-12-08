@@ -15,7 +15,7 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  hello();
+  viewEmp();
 });
 
 function displayRoleNo() {
@@ -31,11 +31,32 @@ function displayDeptNo() {
     console.table("Department- name ID numbers", res);
   });
 }
+
 function hello() {
   console.log(
     "Welcome to easyEmp! \n A CMS to help you manage your employee database"
   );
   firstStart();
+}
+
+function firstStart() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "setUp",
+        message:
+          "Do you need to set up either your employee-types or department-names?",
+        choices: ["yes", "skip set-up"],
+      },
+    ])
+    .then(function (answer) {
+      if (answer.setUp === "yes") {
+        empRole();
+      } else {
+        start();
+      }
+    });
 }
 
 function setUp() {
@@ -44,7 +65,7 @@ function setUp() {
       {
         type: "confirm",
         name: "setUpDept",
-        message: "Do you need to add department-names?",
+        message: "Do you need to add Department Names?",
       },
     ])
     .then(function (answer) {
@@ -56,7 +77,7 @@ function setUp() {
             {
               type: "confirm",
               name: "setUpEmp",
-              message: "Do you need to add Employee-Types?",
+              message: "Do you need to add Employee Roles?",
             },
           ])
           .then(
@@ -80,28 +101,6 @@ function setUp() {
               }
             })
           );
-      }
-    });
-}
-
-//setup (creating updating db)
-
-function firstStart() {
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "setUp",
-        message:
-          "Do you need to set up either your employee-types or department-names?",
-        choices: ["yes", "skip set-up"],
-      },
-    ])
-    .then(function (answer) {
-      if (answer.setUp === "yes") {
-        empRole();
-      } else {
-        start();
       }
     });
 }
@@ -158,113 +157,6 @@ function deptName() {
     });
 }
 
-function start() {
-  inquirer
-    .prompt({
-      type: "list",
-      name: "taskChoice",
-      message: "Choose your task",
-      choices: [
-        "Add new info to the database",
-        "View database info",
-        "Change current info in database",
-      ],
-    })
-    .then(function (answer) {
-      switch (answer.taskChoice) {
-        case "Add new info to the database":
-          addInfo();
-          break;
-        case "View database info":
-          viewInfo();
-          break;
-        case "Change current info in database":
-          updateInfo();
-          break;
-      }
-    });
-}
-
-//interactions with db
-function addInfo() {
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "changeItem",
-        message: "Type of data to be added",
-        choices: ["new employee", "new department", "change employee role"],
-      },
-    ])
-    .then(function (answer) {
-      switch (answer.changeItem) {
-        case "new employee":
-          newEmp();
-          break;
-
-        case "new department":
-          newDept();
-          break;
-
-        case "change employee role":
-          changeRole();
-          break;
-      }
-    });
-}
-function newEmp() {
-  inquirer
-    .prompt([
-      {
-        type: "input",
-        name: "firstName",
-        message: "Employee's First Name:",
-      },
-      {
-        type: "input",
-        name: "lastName",
-        message: "Employee's Last Name",
-      },
-      {
-        type: "number",
-        name: "roleNo",
-        message: "Employee-Type ID Number, if applicable",
-      },
-      {
-        type: "number",
-        name: "managerNo",
-        message: "Manager ID number",
-      },
-    ])
-    .then(function (answers) {
-      connection.query(
-        "INSERT INTO employee SET ?",
-        {
-          first_name: answers.firstName,
-          last_name: answers.lastName,
-          role_id: answers.roleNo,
-          manager_id: answers.managerNo,
-        },
-        function (err, res) {
-          if (err) throw err;
-          console.log(
-            `${answers.firstName} ${answers.lastName} has been added as a new employee.`
-          );
-          start();
-        }
-      );
-    });
-}
-// //function newDept() {};
-
-// //function changeRole() {};
-
-// function viewInfo() {}
-
-// function changeInfo() {}
-
-// function removeInfo() {}
-
 function empRole() {
   inquirer
     .prompt([
@@ -317,4 +209,126 @@ function empRole() {
         }
       );
     });
+}
+
+//setup (creating updating db)
+
+function start() {
+  inquirer
+    .prompt({
+      type: "list",
+      name: "taskChoice",
+      message: "Choose your task",
+      choices: [
+        "Add or update employee info to the database",
+        "View database info",
+        "Change current info in database",
+        "Exit",
+      ],
+    })
+    .then(function (answer) {
+      switch (answer.taskChoice) {
+        case "Add or update new employee info to the database":
+          addInfo();
+          break;
+        case "View database info":
+          viewInfo();
+          break;
+        case "Change current info in database":
+          updateInfo();
+          break;
+
+        case "exit":
+          close();
+      }
+    });
+}
+
+//interactions with db
+function addInfo() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "changeItem",
+        message: "Type of employee data to edit",
+        choices: [
+          "new employee",
+          "update employee role",
+          "update employee manager",
+        ],
+      },
+    ])
+    .then(function (answer) {
+      switch (answer.changeItem) {
+        case "new employee":
+          newEmp();
+          break;
+
+        case "update employee role":
+          updateRole();
+          break;
+
+        case "update employee manager":
+          updateManager();
+          break;
+      }
+    });
+}
+
+function newEmp() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "firstName",
+        message: "Employee's First Name:",
+      },
+      {
+        type: "input",
+        name: "lastName",
+        message: "Employee's Last Name",
+      },
+      {
+        type: "number",
+        name: "roleNo",
+        message: "Employee-Type ID Number, if applicable",
+      },
+      {
+        type: "number",
+        name: "managerNo",
+        message: "Manager ID number",
+      },
+    ])
+    .then(function (answers) {
+      connection.query(
+        "INSERT INTO employee SET ?",
+        {
+          first_name: answers.firstName,
+          last_name: answers.lastName,
+          role_id: answers.roleNo,
+          manager_id: answers.managerNo,
+        },
+        function (err, res) {
+          if (err) throw err;
+          console.log(
+            `${answers.firstName} ${answers.lastName} has been added as a new employee.`
+          );
+          start();
+        }
+      );
+    });
+}
+var employeeList;
+function viewEmp() {
+  connection.query(
+    "SELECT first_name, last_name FROM employee",
+    function (err, res) {
+      if (err) throw err;
+      employeeList = [res.first_name, res.last_name];
+      console.log(employeeList);
+      var fnln = employeeList.prototype.entries();
+      console.log(fnln);
+    }
+  );
 }

@@ -4,6 +4,8 @@ var inquirer = require("inquirer");
 var qr = require("./queries");
 var setUp = require("./setup");
 
+var employee = [];
+
 var connection = mysql.createConnection({
   host: "localhost",
   PORT: 3306,
@@ -15,7 +17,7 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  viewEmp();
+  nameList();
 });
 
 function displayRoleNo() {
@@ -319,16 +321,17 @@ function newEmp() {
       );
     });
 }
-var employeeList;
-function viewEmp() {
+
+function nameList() {
   connection.query(
     "SELECT first_name, last_name FROM employee",
     function (err, res) {
       if (err) throw err;
-      employeeList = [res.first_name, res.last_name];
-      console.log(employeeList);
-      var fnln = employeeList.prototype.entries();
-      console.log(fnln);
+
+      for (i = 0; i < res.length; i++)
+        employee.push(`${res[i].first_name} ${res[i].last_name}`);
+      console.log(employee);
+      connection.end;
     }
   );
 }

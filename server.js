@@ -2,7 +2,6 @@ var consoleTable = require("console.table");
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var qr = require("./queries");
-var setUp = require("./setup");
 
 var employee = [];
 var chosenEmp = [];
@@ -17,22 +16,8 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  selectEmp();
+  hello();
 });
-
-function displayRoleNo() {
-  connection.query("SELECT id, title FROM emp_role", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-  });
-}
-
-function displayDeptNo() {
-  connection.query("SELECT id, dept_name FROM department", function (err, res) {
-    if (err) throw err;
-    console.table("Department- name ID numbers", res);
-  });
-}
 
 function hello() {
   console.log(
@@ -48,13 +33,13 @@ function firstStart() {
         type: "list",
         name: "setUp",
         message:
-          "Do you need to set up either your employee-types or department-names?",
+          "Do you need to set up either your employee-roles or departments?",
         choices: ["yes", "skip set-up"],
       },
     ])
     .then(function (answer) {
       if (answer.setUp === "yes") {
-        empRole();
+        setUp();
       } else {
         start();
       }
@@ -74,37 +59,33 @@ function setUp() {
       if (answer.setUpDept === true) {
         deptName();
       } else {
-        inquirer
-          .prompt([
-            {
-              type: "confirm",
-              name: "setUpEmp",
-              message: "Do you need to add Employee Roles?",
-            },
-          ])
-          .then(
-            function () {
-              if (answer.setUpEmp === true) {
-                console.log(
-                  `${
-                    ("SELECT id, dept_name FROM department",
-                    function (err, res) {
-                      if (err) throw err;
-                      console.table("Department- name ID numbers", res);
-                    })
-                  }`
-                );
-              }
-            }.then(function (answer) {
-              if (answer.setUpEmp === true) {
-                console.log(
-                  "Enter Type of Employee (i.e doctor, salesperson, clerk, etc"
-                );
-              }
-            })
-          );
+        onToEmpRole();
       }
     });
+}
+
+function onToEmpRole() {
+  inquirer
+    .prompt([
+      {
+        type: "confirm",
+        name: "setUpEmp",
+        message: "Do you need to add Employee Roles?",
+      },
+    ])
+    .then(function (answer) {
+      if (answer.setUpEmp === true) {
+        deptTable();
+      }
+    });
+}
+
+function deptTable() {
+  connection.query("SELECT id, dept_name FROM department", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    empRole();
+  });
 }
 
 function deptName() {
@@ -125,37 +106,48 @@ function deptName() {
         function (err) {
           if (err) throw err;
           console.log(`${answer.deptName} Department added to database`);
+          deptInq();
         }
       );
-      inquirer
-        .prompt([
-          {
-            type: "confirm",
-            name: "done",
-            message: "Would you like to add another department name?",
-          },
-        ])
-        .then(function (answer) {
-          if (answer.done === false) {
-            inquirer
-              .prompt([
-                {
-                  type: "confirm",
-                  name: "empAlso",
-                  message: "Do you need to add Employee-Types?",
-                },
-              ])
-              .then(function (answer) {
-                if (answer.empAlso === true) {
-                  empRole();
-                } else {
-                  start();
+    });
+}
+
+function deptInq() {
+  inquirer
+    .prompt([
+      {
+        type: "confirm",
+        name: "done",
+        message: "Would you like to add another department name?",
+      },
+    ])
+    .then(function (answer) {
+      if (answer.done === true) {
+        deptName();
+      } else {
+        inquirer
+          .prompt([
+            {
+              type: "confirm",
+              name: "empAlso",
+              message: "Do you need to add Employee Roles?",
+            },
+          ])
+          .then(function (answer) {
+            if (answer.empAlso === true) {
+              connection.query(
+                "SELECT id, role_title FROM emp_role",
+                function (err, res) {
+                  if (err) throw err;
+                  console.table(res);
                 }
-              });
-          } else {
-            deptName();
-          }
-        });
+              );
+              empRole();
+            } else {
+              start();
+            }
+          });
+      }
     });
 }
 
@@ -163,19 +155,19 @@ function empRole() {
   inquirer
     .prompt([
       {
+        type: "number",
+        name: "dept",
+        message: "Please input a department number",
+      },
+      {
         type: "input",
         name: "empType",
-        message: "Employee Type",
+        message: "Title of employee role",
       },
       {
         type: "number",
         name: "salary",
         message: "Salary (in K, i.e 40,500 = 40.5)",
-      },
-      {
-        type: "number",
-        name: "dept",
-        message: `Please input the dept Id number \n ${getDptIdtable}`,
       },
     ])
     .then(function (answer) {
@@ -185,7 +177,7 @@ function empRole() {
       connection.query(
         "INSERT INTO emp_role SET ?",
         {
-          title: answer.empType,
+          role_title: answer.empType,
           salary_K: answer.salary,
           department_id: answer.dept,
         },
@@ -355,7 +347,7 @@ function viewDept() {
   });
 }
 
-function selectEmp() {
+function displayTables() {
   connection.query(
     "SELECT id, first_name, last_name FROM employee",
     function (err, res) {
@@ -398,17 +390,12 @@ function myinquirer() {
         function (err, res) {
           if (err) throw err;
           connection.query(
-            "SELECT first_name, last_name, role_id FROM employee WHERE ?",
-            [
-              {
-                id: answer.employee,
-              },
-            ],
+            "SELECT first_name, last_name, role_title FROM emp_role JOIN employee ON emp_role.id = employee.role_id",
             function (err, res) {
               if (err) throw err;
               console.log(res);
               console.log(
-                `${res[0].first_name} ${res[0].last_name}'s role is now ${res[0].role_id}`
+                `${res[0].first_name} ${res[0].last_name}'s role is now ${res[0].role_title}`
               );
             }
           );

@@ -75,7 +75,7 @@ function onToEmpRole() {
     ])
     .then(function (answer) {
       if (answer.setUpEmp === true) {
-        deptTable();
+        empRole();
       }
     });
 }
@@ -84,7 +84,6 @@ function deptTable() {
   connection.query("SELECT id, dept_name FROM department", function (err, res) {
     if (err) throw err;
     console.table(res);
-    empRole();
   });
 }
 
@@ -135,13 +134,6 @@ function deptInq() {
           ])
           .then(function (answer) {
             if (answer.empAlso === true) {
-              connection.query(
-                "SELECT id, role_title FROM emp_role",
-                function (err, res) {
-                  if (err) throw err;
-                  console.table(res);
-                }
-              );
               empRole();
             } else {
               start();
@@ -152,6 +144,7 @@ function deptInq() {
 }
 
 function empRole() {
+  deptTable();
   inquirer
     .prompt([
       {
@@ -172,7 +165,10 @@ function empRole() {
     ])
     .then(function (answer) {
       if (!answer.salary || !answer.dept) {
-        console.log("Your answer must be a number");
+        console.log(
+          "Your answer must be a number, please input this employee role again"
+        );
+        empRole();
       }
       connection.query(
         "INSERT INTO emp_role SET ?",
@@ -194,7 +190,6 @@ function empRole() {
             ])
             .then(function (answer) {
               if (answer.done === false) {
-                console.log("Thank you for entering your employee types.");
                 start();
               } else {
                 empRole();
@@ -212,7 +207,7 @@ function start() {
     .prompt({
       type: "list",
       name: "taskChoice",
-      message: "Choose your task",
+      message: "What would you like to do now?",
       choices: [
         "Add or update employee info to the database",
         "View database info",

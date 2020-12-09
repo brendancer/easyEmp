@@ -5,7 +5,7 @@ var qr = require("./queries");
 var setUp = require("./setup");
 
 var employee = [];
-
+var chosenEmp = [];
 var connection = mysql.createConnection({
   host: "localhost",
   PORT: 3306,
@@ -17,7 +17,7 @@ var connection = mysql.createConnection({
 connection.connect(function (err) {
   if (err) throw err;
   console.log("connected as id " + connection.threadId);
-  nameList();
+  selectEmp();
 });
 
 function displayRoleNo() {
@@ -186,7 +186,7 @@ function empRole() {
         "INSERT INTO emp_role SET ?",
         {
           title: answer.empType,
-          salary: answer.salary,
+          salary_K: answer.salary,
           department_id: answer.dept,
         },
         function (err) {
@@ -334,4 +334,85 @@ function nameList() {
       connection.end;
     }
   );
+}
+
+function viewEmp() {
+  connection.query("SELECT * FROM employee", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+  });
+}
+function viewRole() {
+  connection.query("SELECT * FROM emp_role", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+  });
+}
+function viewDept() {
+  connection.query("SELECT * FROM department", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+  });
+}
+
+function selectEmp() {
+  connection.query(
+    "SELECT id, first_name, last_name FROM employee",
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      connection.query("SELECT * FROM emp_role", function (err, res) {
+        if (err) throw err;
+        console.table(res);
+
+        myinquirer();
+      });
+    }
+  );
+}
+function myinquirer() {
+  inquirer
+    .prompt([
+      {
+        type: "number",
+        name: "employee",
+        message: "Please choose an Employee by their ID number",
+      },
+      {
+        type: "number",
+        name: "role",
+        message: "update employee role by id number(see above)",
+      },
+    ])
+    .then(function (answer) {
+      let query = connection.query(
+        "UPDATE employee SET ? WHERE ?",
+        [
+          {
+            role_id: answer.role,
+          },
+          {
+            id: answer.employee,
+          },
+        ],
+        function (err, res) {
+          if (err) throw err;
+          connection.query(
+            "SELECT first_name, last_name, role_id FROM employee WHERE ?",
+            [
+              {
+                id: answer.employee,
+              },
+            ],
+            function (err, res) {
+              if (err) throw err;
+              console.log(res);
+              console.log(
+                `${res[0].first_name} ${res[0].last_name}'s role is now ${res[0].role_id}`
+              );
+            }
+          );
+        }
+      );
+    });
 }

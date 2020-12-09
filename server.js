@@ -75,7 +75,9 @@ function onToEmpRole() {
     ])
     .then(function (answer) {
       if (answer.setUpEmp === true) {
-        empRole();
+        deptTable();
+      } else {
+        start();
       }
     });
 }
@@ -84,6 +86,14 @@ function deptTable() {
   connection.query("SELECT id, dept_name FROM department", function (err, res) {
     if (err) throw err;
     console.table(res);
+    empRole();
+  });
+}
+function roleTable() {
+  connection.query("SELECT id, role_title FROM emp_role", function (err, res) {
+    if (err) throw err;
+    console.table(res);
+    newEmp();
   });
 }
 
@@ -124,27 +134,12 @@ function deptInq() {
       if (answer.done === true) {
         deptName();
       } else {
-        inquirer
-          .prompt([
-            {
-              type: "confirm",
-              name: "empAlso",
-              message: "Do you need to add Employee Roles?",
-            },
-          ])
-          .then(function (answer) {
-            if (answer.empAlso === true) {
-              empRole();
-            } else {
-              start();
-            }
-          });
+        onToEmpRole();
       }
     });
 }
 
 function empRole() {
-  deptTable();
   inquirer
     .prompt([
       {
@@ -217,7 +212,7 @@ function start() {
     })
     .then(function (answer) {
       switch (answer.taskChoice) {
-        case "Add or update new employee info to the database":
+        case "Add or update employee info to the database":
           addInfo();
           break;
         case "View database info":
@@ -233,7 +228,6 @@ function start() {
     });
 }
 
-//interactions with db
 function addInfo() {
   inquirer
     .prompt([
@@ -251,11 +245,11 @@ function addInfo() {
     .then(function (answer) {
       switch (answer.changeItem) {
         case "new employee":
-          newEmp();
+          roleTable();
           break;
 
         case "update employee role":
-          updateRole();
+          displayTables();
           break;
 
         case "update employee manager":
@@ -269,6 +263,11 @@ function newEmp() {
   inquirer
     .prompt([
       {
+        type: "number",
+        name: "roleNo",
+        message: "Employee Role id number",
+      },
+      {
         type: "input",
         name: "firstName",
         message: "Employee's First Name:",
@@ -279,14 +278,9 @@ function newEmp() {
         message: "Employee's Last Name",
       },
       {
-        type: "number",
-        name: "roleNo",
-        message: "Employee-Type ID Number, if applicable",
-      },
-      {
-        type: "number",
+        type: "input",
         name: "managerNo",
-        message: "Manager ID number",
+        message: "Manager ID number (optional)",
       },
     ])
     .then(function (answers) {
@@ -309,36 +303,50 @@ function newEmp() {
     });
 }
 
-function nameList() {
-  connection.query(
-    "SELECT first_name, last_name FROM employee",
-    function (err, res) {
-      if (err) throw err;
-
-      for (i = 0; i < res.length; i++)
-        employee.push(`${res[i].first_name} ${res[i].last_name}`);
-      console.log(employee);
-      connection.end;
-    }
-  );
+function viewInfo() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "viewItem",
+        message: "What would you like to view?",
+        choices: ["Employees", "Departments", "Employee Roles"],
+      },
+    ])
+    .then(function (answer) {
+      switch (answer.viewItem) {
+        case "Employees":
+          viewEmp();
+          break;
+        case "Departments":
+          viewDept();
+          break;
+        case "Employee Roles":
+          viewRole();
+          break;
+      }
+    });
 }
 
 function viewEmp() {
   connection.query("SELECT * FROM employee", function (err, res) {
     if (err) throw err;
     console.table(res);
+    start();
   });
 }
 function viewRole() {
   connection.query("SELECT * FROM emp_role", function (err, res) {
     if (err) throw err;
     console.table(res);
+    start();
   });
 }
 function viewDept() {
   connection.query("SELECT * FROM department", function (err, res) {
     if (err) throw err;
     console.table(res);
+    start();
   });
 }
 
@@ -352,12 +360,12 @@ function displayTables() {
         if (err) throw err;
         console.table(res);
 
-        myinquirer();
+        roleInq();
       });
     }
   );
 }
-function myinquirer() {
+function roleInq() {
   inquirer
     .prompt([
       {
@@ -388,13 +396,27 @@ function myinquirer() {
             "SELECT first_name, last_name, role_title FROM emp_role JOIN employee ON emp_role.id = employee.role_id",
             function (err, res) {
               if (err) throw err;
-              console.log(res);
               console.log(
                 `${res[0].first_name} ${res[0].last_name}'s role is now ${res[0].role_title}`
               );
+              start();
             }
           );
         }
       );
     });
+}
+
+function nameList() {
+  connection.query(
+    "SELECT first_name, last_name FROM employee",
+    function (err, res) {
+      if (err) throw err;
+
+      for (i = 0; i < res.length; i++)
+        employee.push(`${res[i].first_name} ${res[i].last_name}`);
+      console.log(employee);
+      connection.end;
+    }
+  );
 }

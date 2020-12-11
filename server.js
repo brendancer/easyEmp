@@ -1,7 +1,5 @@
 var consoleTable = require("console.table");
-
 var inquirer = require("inquirer");
-
 var mysql = require("mysql");
 
 var connection = mysql.createConnection({
@@ -72,11 +70,23 @@ function start() {
 }
 
 function viewEmp() {
-  connection.query("SELECT * FROM employee", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    start();
-  });
+  connection.query(
+    `
+  SELECT 
+    employee.id,
+    employee.first_name,
+    employee.last_name,
+    emp_role.title
+
+  FROM employee 
+  LEFT JOIN emp_role  ON employee.role_id = emp_role.id
+  `,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      start();
+    }
+  );
 }
 
 function viewDept() {
@@ -88,11 +98,20 @@ function viewDept() {
 }
 
 function viewRoles() {
-  connection.query("SELECT * FROM emp_role", function (err, res) {
-    if (err) throw err;
-    console.table(res);
-    start();
-  });
+  connection.query(
+    ` SELECT 
+  emp_role.id,
+  emp_role.title,
+  emp_role.salary,
+  department.dept_name
+FROM emp_role
+LEFT JOIN department  ON emp_role.department_id = department.id`,
+    function (err, res) {
+      if (err) throw err;
+      console.table(res);
+      start();
+    }
+  );
 }
 
 function roleTable() {
@@ -202,7 +221,7 @@ function addRole() {
         console.log(
           "Your answer must be a number, please input this employee role again"
         );
-        empRole();
+        addRole();
       }
       connection.query(
         "INSERT INTO emp_role SET ?",
@@ -263,7 +282,12 @@ function roleInq() {
         function (err, res) {
           if (err) throw err;
           connection.query(
-            "SELECT first_name, last_name, title FROM emp_role JOIN employee ON emp_role.id = employee.role_id",
+            `SELECT 
+              employee.first_name, 
+              employee.last_name, 
+              emp_role.title 
+            FROM emp_role   
+            JOIN employee ON emp_role.id = employee.role_id`,
             function (err, res) {
               if (err) throw err;
               console.log(

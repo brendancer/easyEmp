@@ -1,1 +1,0 @@
-var newqueries = require("./queries");

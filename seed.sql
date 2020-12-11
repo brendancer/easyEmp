@@ -34,18 +34,29 @@ CREATE TABLE employee
       (30)
   );
 
+
+
+
       INSERT INTO employee
         (first_name, last_name, role_id, manager_id)
       VALUES
-        ("Brenda", "Goodwin", 5, 3);
+        ("Brenda", "Goodwin", 2, 1),
+        ("suzy", "Que", 1, 1 ),
+        ("Rebecca", "Down", 1, 2),
+        ("Henry", "gates", 2, 1),
+        ("Steve", "Cahill", 1, 2);
 
       INSERT INTO emp_role
         ( title, salary, department_id)
       VALUES
-        ("Developer", "4.5", 2);
+        ("Developer", 60.3, 2),
+        ("Manager", 110.4, 1);
 
       INSERT INTO department
         (dept_name)
       VALUES
+        ("manager"),
         ("production"),
-        ("sales");
+        ("sales");	
+        
+
